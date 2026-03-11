@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "IO/file_reader.h"
+#include "fitness/fitness.h"
 
 int main() {    
     GraphData *graph = read_file();
@@ -15,6 +16,11 @@ int main() {
             printf("\n");
         }
     }
+
+    int chromosome[] = {0, 2, 1, 3};
+
+    int fitness = calculate_fitness(graph, chromosome);
+    printf("Fitness do cromossomo: %d\n", fitness);
 
     free_graph_data();
 

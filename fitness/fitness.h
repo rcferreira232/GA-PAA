@@ -1,6 +1,8 @@
 #ifndef FITNESS_H
 #define FITNESS_H
 
-int calculate_fitness();
+#include "../IO/file_reader.h"
+
+int calculate_fitness(GraphData *graph, int *chromosome);
 
 #endif
