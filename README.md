@@ -21,3 +21,12 @@ O algoritmo tem que ter como entrada um arquivo .txt que contém na primeira lin
 Ou seja - O grafo G tem 4 vértices e 6 arestas. A distância da cidade 1 para a cidade 2 é 7, da cidade 1 para a cidade 3 é 1, da cidade 1 para a cidade 4 é 3, da cidade 2 para a cidade 3 é 5, da cidade 2 para a cidade 4 é 8, e da cidade 3 para a cidade 4 é 6. Note que a distância da cidade 2 para a cidade 1 é 7, da cidade 3 para a cidade 1 é 1, da cidade 4 para a cidade 1 é 3, da cidade 3 para a cidade 2 é 5, da cidade 4 para a cidade 2 é 8, e da cidade 4 para a cidade 3 é 6. O resultado do algoritmo para o grafo G deve ser a melhor solução encontrada, ou seja, a melhor rota (sequência de vértices) e o custo total da rota.
 
 Observação: O vértice Origem é o vértice 1.
+
+
+## Compilar
+```gcc main.c IO/file_reader.c fitness/fitness.c operators/selection.c operators/crossover.c operators/mutation.c -o ga_tsp -O2
+```
+
+## Executar
+```.\ga_tsp
+```
