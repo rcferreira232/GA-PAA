@@ -121,12 +121,51 @@ int main(void) {
         indice_melhor = atual_melhor;
     }
 
-    printf("Melhor rota encontrada (1-index):\n");
+    // Exibir grafo como matriz de distâncias
+    printf("\nGrafo (matriz de distancias):\n");
     for (int i = 0; i < n; i++) {
-        printf("%d ", melhor_solucao[i] + 1);
+        for (int j = 0; j < n; j++) {
+            printf("%4d", grafo->distance_matrix[i][j]);
+        }
+        printf("\n");
+    }
+
+    // Exibir caminho com setas
+    printf("\nMelhor rota (com setas):\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d -> ", melhor_solucao[i] + 1);
     }
     printf("%d\n", melhor_solucao[0] + 1);
     printf("Custo total: %d\n", melhor_custo);
+
+    // Salvar em JSON para front-end
+    FILE *saida_json = fopen("graph_output.json", "w");
+    if (saida_json) {
+        fprintf(saida_json, "{\n");
+        fprintf(saida_json, "  \"n\": %d,\n", n);
+        fprintf(saida_json, "  \"matriz\": [\n");
+        for (int i = 0; i < n; i++) {
+            fprintf(saida_json, "    [");
+            for (int j = 0; j < n; j++) {
+                fprintf(saida_json, "%d", grafo->distance_matrix[i][j]);
+                if (j < n - 1) fprintf(saida_json, ", ");
+            }
+            fprintf(saida_json, "]%s\n", (i < n - 1) ? "," : "");
+        }
+        fprintf(saida_json, "  ],\n");
+        fprintf(saida_json, "  \"melhor_rota\": [");
+        for (int i = 0; i < n; i++) {
+            fprintf(saida_json, "%d", melhor_solucao[i] + 1);
+            if (i < n - 1) fprintf(saida_json, ", ");
+        }
+        fprintf(saida_json, "],\n");
+        fprintf(saida_json, "  \"custo\": %d\n", melhor_custo);
+        fprintf(saida_json, "}\n");
+        fclose(saida_json);
+        printf("Arquivo graph_output.json gravado para visualizacao front-end.\n");
+    } else {
+        printf("Erro ao gravar graph_output.json.\n");
+    }
 
     for (int i = 0; i < tamanho_populacao; i++) {
         free(populacao[i]);

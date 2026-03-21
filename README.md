@@ -29,6 +29,16 @@ gcc main.c IO/file_reader.c fitness/fitness.c operators/selection.c operators/cr
 ```
 
 ## Executar
-```.
-\ga_tsp
+```
+.\ga_tsp
+```
+
+## Rodar o servidor para visualização do grafo
+```
+python -m http.server 8000
+```
+
+## Acessar
+```
+http://localhost:8000/visualization.html
 ```

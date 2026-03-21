@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visualização PCVS</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    svg { border: 1px solid #aaa; background: #f9f9f9; }
+    .aresta { stroke: #999; stroke-width: 2; }
+    .aresta-rota { stroke: #e63946; stroke-width: 3; }
+    .no { fill: #1d3557; stroke: #fff; stroke-width: 2; }
+    .no-text { fill: #fff; font-weight: bold; font-size: 12px; text-anchor: middle; }    .peso-rota { fill: #000; font-size: 12px; font-weight: bold; text-anchor: middle; background: white; }
+    .peso-normal { fill: #666; font-size: 10px; text-anchor: middle; }
+    .peso-bg { fill: #fff; opacity: 0.8; }    .legend { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Visualização PCVS</h1>
+  <p>Carregue o arquivo <code>graph_output.json</code> gerado pelo programa C.</p>
+  <button id="carregar">Carregar grafo</button>
+  <div id="status"></div>
+  <div id="info"></div>
+  <svg id="canvas" width="750" height="500"></svg>
+  <div class="legend">
+    <b>Legendas:</b> <span style="color:#1d3557">●</span> vértice, <span style="color:#999">—</span> aresta geral, <span style="color:#e63946">—</span> caminho ótimo
+  </div>
+
+  <script>
+    document.getElementById('carregar').addEventListener('click', () => {
+      fetch('graph_output.json')
+        .then((res) => {
+          if (!res.ok) throw new Error('Não foi possível abrir graph_output.json. Rode o C primeiro.');
+          return res.json();
+        })
+        .then(renderGrafo)
+        .catch((err) => {
+          document.getElementById('status').textContent = err.message;
+        });
+    });
+
+    function renderGrafo(dados) {
+      const n = dados.n;
+      const matriz = dados.matriz;
+      const rota = dados.melhor_rota.map(x => x - 1);
+      const custo = dados.custo;
+      document.getElementById('status').textContent = `Grafo com ${n} vértices carregado`; 
+      document.getElementById('info').innerHTML = `<p>Custo melhor rota: ${custo}</p><p>Rota: ${dados.melhor_rota.join(' -> ')} -> ${dados.melhor_rota[0]}</p>`;
+
+      const svg = document.getElementById('canvas');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+      const raio = 180;
+      const centroX = 375;
+      const centroY = 250;
+      const nos = [];
+      for (let i = 0; i < n; i++) {
+        const ang = (2 * Math.PI * i) / n - Math.PI / 2;
+        nos.push({ x: centroX + raio * Math.cos(ang), y: centroY + raio * Math.sin(ang), id: i });
+      }
+
+      const paths = new Set();
+      for (let i = 0; i < rota.length; i++) {
+        const u = rota[i];
+        const v = rota[(i + 1) % rota.length];
+        paths.add(`${Math.min(u,v)}-${Math.max(u,v)}`);
+      }
+
+      // desenha arestas
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const linha = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          linha.setAttribute('x1', nos[i].x);
+          linha.setAttribute('y1', nos[i].y);
+          linha.setAttribute('x2', nos[j].x);
+          linha.setAttribute('y2', nos[j].y);
+          const key = `${i}-${j}`;
+          if (paths.has(key)) {
+            linha.setAttribute('class', 'aresta-rota');
+          } else {
+            linha.setAttribute('class', 'aresta');
+          }
+          svg.appendChild(linha);
+
+          const mx = (nos[i].x + nos[j].x) / 2;
+          const my = (nos[i].y + nos[j].y) / 2;
+          const peso = matriz[i][j];
+
+          // Calcular deslocamento perpendicular para evitar sobreposição
+          const dx = nos[j].x - nos[i].x;
+          const dy = nos[j].y - nos[i].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const offsetX = 14 * ( -dy / dist );
+          const offsetY = 14 * ( dx / dist );
+
+          // Fundo para o texto
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', mx + offsetX - 12);
+          rect.setAttribute('y', my + offsetY - 10);
+          rect.setAttribute('width', 24);
+          rect.setAttribute('height', 18);
+          rect.setAttribute('class', 'peso-bg');
+          svg.appendChild(rect);
+
+          // Texto do peso
+          const textoPeso = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          textoPeso.setAttribute('x', mx + offsetX);
+          textoPeso.setAttribute('y', my + offsetY + 4);
+          if (paths.has(key)) {
+            textoPeso.setAttribute('class', 'peso-rota');
+          } else {
+            textoPeso.setAttribute('class', 'peso-normal');
+          }
+          textoPeso.textContent = peso;
+          svg.appendChild(textoPeso);
+
+          // Mensagem de tooltip em todos os caminhos
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = `Peso ${peso} (aresta ${i+1}-${j+1})`;
+          linha.appendChild(title);
+        }
+      }
+
+      // desenha nos
+      for (const no of nos) {
+        const circulo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circulo.setAttribute('cx', no.x);
+        circulo.setAttribute('cy', no.y);
+        circulo.setAttribute('r', 16);
+        circulo.setAttribute('class', 'no');
+        svg.appendChild(circulo);
+
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', no.x);
+        label.setAttribute('y', no.y + 4);
+        label.setAttribute('class', 'no-text');
+        label.textContent = no.id + 1;
+        svg.appendChild(label);
+      }
+    }
+  </script>
+</body>
+</html>
