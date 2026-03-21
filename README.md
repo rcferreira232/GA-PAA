@@ -24,9 +24,11 @@ Observação: O vértice Origem é o vértice 1.
 
 
 ## Compilar
-```gcc main.c IO/file_reader.c fitness/fitness.c operators/selection.c operators/crossover.c operators/mutation.c -o ga_tsp -O2
+```
+gcc main.c IO/file_reader.c fitness/fitness.c operators/selection.c operators/crossover.c operators/mutation.c -o ga_tsp -O2
 ```
 
 ## Executar
-```.\ga_tsp
+```.
+\ga_tsp
 ```
