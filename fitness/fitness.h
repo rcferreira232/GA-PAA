@@ -3,6 +3,6 @@
 
 #include "../IO/file_reader.h"
 
-int calculate_fitness(GraphData *graph, int *chromosome);
+int calcular_aptidao(GraphData *grafo, int *cromossomo);
 
 #endif

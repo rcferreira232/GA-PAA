@@ -1,15 +1,15 @@
 #include "fitness.h"
 
-int calculate_fitness(GraphData *graph, int *chromosome) {
-    int fitness = 0;
+int calcular_aptidao(GraphData *grafo, int *cromossomo) {
+    int aptidao = 0;
 
-    for (int i = 0; i < graph->num_vertices - 1; i++) {
-        int from = chromosome[i];
-        int to = chromosome[i + 1];
-        fitness += graph->distance_matrix[from][to];
+    for (int i = 0; i < grafo->num_vertices - 1; i++) {
+        int de = cromossomo[i];
+        int para = cromossomo[i + 1];
+        aptidao += grafo->distance_matrix[de][para];
     }
 
-    fitness += graph->distance_matrix[chromosome[graph->num_vertices - 1]][chromosome[0]];
+    aptidao += grafo->distance_matrix[cromossomo[grafo->num_vertices - 1]][cromossomo[0]];
 
-    return fitness;
+    return aptidao;
 }

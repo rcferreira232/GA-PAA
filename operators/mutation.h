@@ -1,6 +1,6 @@
 #ifndef MUTATION_H
 #define MUTATION_H
 
-int mutation();
+void mutacao_troca(int *cromossomo, int n, double taxa_mutacao);
 
 #endif
