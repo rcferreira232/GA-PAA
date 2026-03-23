@@ -1,3 +1,6 @@
+// Danilo, Fernanda e Rafael
+
+
 #include "fitness.h"
 
 int calcular_aptidao(GraphData *grafo, int *cromossomo) {
