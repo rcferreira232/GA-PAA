@@ -2,21 +2,21 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAXN 100
-#define POP_SIZE 50
-#define GERACOES 500
-#define TAXA_MUT 0.1
+#define maxN 500
+#define tamanho_populacao 30
+#define geracoes 200
+#define taxa_mut 0.1
 
 int n, m;
-int dist[MAXN][MAXN];
+int dist[maxN][maxN];
 
 typedef struct {
-    int rota[MAXN];
+    int rota[maxN];
     int custo;
 } Individuo;
 
-Individuo populacao[POP_SIZE];
-Individuo novaPop[POP_SIZE];
+Individuo populacao[tamanho_populacao];
+Individuo novaPop[tamanho_populacao];
 
 // -------------------- FUNÇÃO CUSTO --------------------
 int calcularCusto(int rota[]) {
@@ -49,8 +49,8 @@ void gerarIndividuo(Individuo *ind) {
 
 // -------------------- SELEÇÃO (TORNEIO) --------------------
 Individuo torneio() {
-    int a = rand() % POP_SIZE;
-    int b = rand() % POP_SIZE;
+    int a = rand() % tamanho_populacao;
+    int b = rand() % tamanho_populacao;
 
     if (populacao[a].custo < populacao[b].custo)
         return populacao[a];
@@ -69,7 +69,7 @@ void crossover(Individuo p1, Individuo p2, Individuo *filho) {
         fim = tmp;
     }
 
-    int usado[MAXN] = {0};
+    int usado[maxN] = {0};
 
     // copia trecho do pai1
     for (int i = inicio; i <= fim; i++) {
@@ -94,11 +94,14 @@ void crossover(Individuo p1, Individuo p2, Individuo *filho) {
 void mutacao(Individuo *ind) {
     double r = (double) rand() / RAND_MAX;
 
-    if (r < TAXA_MUT) {
+    if (r < taxa_mut) {
         int i = rand() % n;
         int j = rand() % n;
-        while (j == i)
+
+        while (i == j) 
+        {
             j = rand() % n;
+        }
 
         int tmp = ind->rota[i];
         ind->rota[i] = ind->rota[j];
@@ -157,12 +160,12 @@ int main() {
     lerArquivo("entrada.txt");
 
     // população inicial
-    for (int i = 0; i < POP_SIZE; i++)
+    for (int i = 0; i < tamanho_populacao; i++)
         gerarIndividuo(&populacao[i]);
 
     // evolução
-    for (int g = 0; g < GERACOES; g++) {
-        for (int i = 0; i < POP_SIZE; i++) {
+    for (int g = 0; g < geracoes; g++) {
+        for (int i = 0; i < tamanho_populacao; i++) {
             Individuo p1 = torneio();
             Individuo p2 = torneio();
 
@@ -171,13 +174,13 @@ int main() {
         }
 
         // substitui população
-        for (int i = 0; i < POP_SIZE; i++)
+        for (int i = 0; i < tamanho_populacao; i++)
             populacao[i] = novaPop[i];
     }
 
     // melhor solução
     Individuo melhor = populacao[0];
-    for (int i = 1; i < POP_SIZE; i++) {
+    for (int i = 1; i < tamanho_populacao; i++) {
         if (populacao[i].custo < melhor.custo)
             melhor = populacao[i];
     }
@@ -185,45 +188,6 @@ int main() {
     imprimirRota(melhor);
 
     printf("Custo: %d\n", melhor.custo);
-
-    // Salvar em JSON para front-end
-    FILE *saida_json = fopen("graph_output.json", "w");
-    if (saida_json) {
-        fprintf(saida_json, "{\n");
-        fprintf(saida_json, "  \"n\": %d,\n", n);
-        fprintf(saida_json, "  \"matriz\": [\n");
-        for (int i = 0; i < n; i++) {
-            fprintf(saida_json, "    [");
-            for (int j = 0; j < n; j++) {
-                fprintf(saida_json, "%d", dist[i][j]);
-                if (j < n - 1) fprintf(saida_json, ", ");
-            }
-            fprintf(saida_json, "]%s\n", (i < n - 1) ? "," : "");
-        }
-        fprintf(saida_json, "  ],\n");
-        fprintf(saida_json, "  \"melhor_rota\": [");
-        // encontrar onde está a cidade 1 (índice 0)
-        int pos;
-        for (int i = 0; i < n; i++) {
-            if (melhor.rota[i] == 0) {
-                pos = i;
-                break;
-            }
-        }
-        // imprimir começando de 1
-        for (int i = 0; i < n; i++) {
-            int idx = (pos + i) % n;
-            fprintf(saida_json, "%d", melhor.rota[idx] + 1);
-            if (i < n - 1) fprintf(saida_json, ", ");
-        }
-        fprintf(saida_json, "],\n");
-        fprintf(saida_json, "  \"custo\": %d\n", melhor.custo);
-        fprintf(saida_json, "}\n");
-        fclose(saida_json);
-        printf("Arquivo graph_output.json gravado para visualizacao front-end.\n");
-    } else {
-        printf("Erro ao gravar graph_output.json.\n");
-    }
 
     return 0;
 }
