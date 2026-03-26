@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define maxN 500
+#define maxN 4
 #define tamanho_populacao 30
 #define geracoes 200
 #define taxa_mut 0.1
@@ -10,7 +10,8 @@
 int n, m;
 int dist[maxN][maxN];
 
-typedef struct {
+typedef struct 
+{
     int rota[maxN];
     int custo;
 } Individuo;
@@ -19,11 +20,14 @@ Individuo populacao[tamanho_populacao];
 Individuo novaPop[tamanho_populacao];
 
 // -------------------- FUNÇÃO CUSTO --------------------
-int calcularCusto(int rota[]) {
+int calcularCusto(int rota[]) 
+{
     int custo = 0;
 
     for (int i = 0; i < n - 1; i++)
+    {
         custo += dist[rota[i]][rota[i+1]];
+    }
 
     // retorno para origem
     custo += dist[rota[n-1]][rota[0]];
@@ -32,13 +36,21 @@ int calcularCusto(int rota[]) {
 }
 
 // -------------------- GERAR INDIVÍDUO --------------------
-void gerarIndividuo(Individuo *ind) {
-    for (int i = 0; i < n; i++)
+void gerarIndividuo(Individuo *ind) 
+{
+    
+    ind->rota[0] = 0; // fixa cidade 1 no início
+
+    for (int i = 1; i < n; i++)
+    {
         ind->rota[i] = i;
 
-    // embaralhamento Fisher-Yates
-    for (int i = n-1; i > 0; i--) {
-        int j = rand() % (i+1);
+    }
+
+    // embaralhar apenas de 1 até n-1
+    for (int i = n-1; i > 1; i--) 
+    {
+        int j = 1 + rand() % i; // nunca mexe na posição 0
         int tmp = ind->rota[i];
         ind->rota[i] = ind->rota[j];
         ind->rota[j] = tmp;
@@ -48,22 +60,29 @@ void gerarIndividuo(Individuo *ind) {
 }
 
 // -------------------- SELEÇÃO (TORNEIO) --------------------
-Individuo torneio() {
+Individuo torneio() 
+{
     int a = rand() % tamanho_populacao;
     int b = rand() % tamanho_populacao;
 
     if (populacao[a].custo < populacao[b].custo)
+    {
         return populacao[a];
+    }
     else
+    {
         return populacao[b];
+    }
 }
 
 // -------------------- CROSSOVER (OX) --------------------
-void crossover(Individuo p1, Individuo p2, Individuo *filho) {
-    int inicio = rand() % n;
-    int fim = rand() % n;
+void crossover(Individuo p1, Individuo p2, Individuo *filho) 
+{
+    int inicio = 1 + rand() % (n-1);
+    int fim = 1 + rand() % (n-1);
 
-    if (inicio > fim) {
+    if (inicio > fim) 
+    {
         int tmp = inicio;
         inicio = fim;
         fim = tmp;
@@ -71,19 +90,29 @@ void crossover(Individuo p1, Individuo p2, Individuo *filho) {
 
     int usado[maxN] = {0};
 
+    filho->rota[0] = 0;
+    usado[0] = 1;
+
     // copia trecho do pai1
-    for (int i = inicio; i <= fim; i++) {
+    for (int i = inicio; i <= fim; i++) 
+    {
         filho->rota[i] = p1.rota[i];
         usado[filho->rota[i]] = 1;
     }
 
-    // completa com pai2
-    int j = 0;
-    for (int i = 0; i < n; i++) {
-        if (!usado[p2.rota[i]]) {
+    int j = 1;
+
+    for (int i = 0; i < n; i++) 
+    {
+        if (!usado[p2.rota[i]]) 
+        {
             while (j >= inicio && j <= fim)
+            {
                 j++;
-            filho->rota[j++] = p2.rota[i];
+            }
+
+            filho->rota[j] = p2.rota[i];
+            j++;
         }
     }
 
@@ -91,18 +120,22 @@ void crossover(Individuo p1, Individuo p2, Individuo *filho) {
 }
 
 // -------------------- MUTAÇÃO --------------------
-void mutacao(Individuo *ind) {
+void mutacao(Individuo *ind) 
+{
     double r = (double) rand() / RAND_MAX;
 
-    if (r < taxa_mut) {
-        int i = rand() % n;
-        int j = rand() % n;
+    if (r < taxa_mut) 
+    {
+        int i = 1 + rand() % (n-1);
+        int j = 1 + rand() % (n-1);
 
+        // garantir que sejam diferentes
         while (i == j) 
         {
-            j = rand() % n;
+            j = 1 + rand() % (n-1);
         }
 
+        // troca (swap)
         int tmp = ind->rota[i];
         ind->rota[i] = ind->rota[j];
         ind->rota[j] = tmp;
@@ -112,10 +145,12 @@ void mutacao(Individuo *ind) {
 }
 
 // -------------------- LEITURA DO ARQUIVO --------------------
-void lerArquivo(char *nome) {
+void lerArquivo(char *nome) 
+{
     FILE *f = fopen(nome, "r");
 
-    if (!f) {
+    if (!f) 
+    {
         printf("Erro ao abrir arquivo\n");
         exit(1);
     }
@@ -123,49 +158,46 @@ void lerArquivo(char *nome) {
     fscanf(f, "%d %d", &n, &m);
 
     for (int i = 0; i < n; i++)
+    {
         for (int j = 0; j < n; j++)
+        {
             fscanf(f, "%d", &dist[i][j]);
+        }
+    }
 
     fclose(f);
 }
 
-// -------------------- IMPRESSÃO CORRETA --------------------
-void imprimirRota(Individuo melhor) {
-    int pos;
-
-    // encontrar onde está a cidade 1 (índice 0)
-    for (int i = 0; i < n; i++) {
-        if (melhor.rota[i] == 0) {
-            pos = i;
-            break;
-        }
-    }
-
+// -------------------- IMPRESSÃO --------------------
+void imprimirRota(Individuo melhor) 
+{
     printf("Melhor rota:\n");
 
-    // imprimir começando de 1
-    for (int i = 0; i < n; i++) {
-        int idx = (pos + i) % n;
-        printf("%d ", melhor.rota[idx] + 1);
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d ", melhor.rota[i] + 1);
     }
 
-    // voltar para origem
-    printf("1\n");
+    printf("1\n"); // retorno
 }
 
 // -------------------- MAIN --------------------
 int main() {
     srand(time(NULL));
 
-    lerArquivo("entrada.txt");
+    lerArquivo("entrada1.txt");
 
     // população inicial
     for (int i = 0; i < tamanho_populacao; i++)
+    {
         gerarIndividuo(&populacao[i]);
+    }
 
     // evolução
-    for (int g = 0; g < geracoes; g++) {
-        for (int i = 0; i < tamanho_populacao; i++) {
+    for (int g = 0; g < geracoes; g++) 
+    {
+        for (int i = 0; i < tamanho_populacao; i++) 
+        {
             Individuo p1 = torneio();
             Individuo p2 = torneio();
 
@@ -175,14 +207,19 @@ int main() {
 
         // substitui população
         for (int i = 0; i < tamanho_populacao; i++)
+        {
             populacao[i] = novaPop[i];
+        }
     }
 
     // melhor solução
     Individuo melhor = populacao[0];
-    for (int i = 1; i < tamanho_populacao; i++) {
+    for (int i = 1; i < tamanho_populacao; i++) 
+    {
         if (populacao[i].custo < melhor.custo)
+        {
             melhor = populacao[i];
+        }
     }
 
     imprimirRota(melhor);
